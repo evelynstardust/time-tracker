@@ -1,4 +1,4 @@
-
+:root {
   color-scheme: dark;
   --bg: #070d15;
   --panel: #101827;
@@ -104,7 +104,7 @@ label select {
   position: sticky;
   top: 0;
   z-index: 30;
-  padding: calc(96px + env(safe-area-inset-top)) 26px 22px;
+  padding: calc(18px + env(safe-area-inset-top)) 22px 16px;
   background: #070d15;
   border-bottom: 2px solid #202a3c;
 }
@@ -262,6 +262,19 @@ h1 {
 }
 
 .icon-button {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.check-card .icon-button {
   display: none;
 }
 
@@ -314,7 +327,7 @@ h1 {
 
 .group-tabs {
   position: sticky;
-  top: 542px;
+  top: 384px;
   z-index: 20;
   display: flex;
   gap: 10px;
@@ -535,9 +548,13 @@ h1 {
 }
 
 .modal {
-  width: min(720px, calc(100vw - 18px));
-  max-height: 92vh;
-  overflow: auto;
+  position: fixed;
+  inset: 10px;
+  width: auto !important;
+  max-width: 720px;
+  margin: auto;
+  max-height: calc(100dvh - 20px) !important;
+  overflow: auto !important;
   border: 2px solid var(--line-strong);
   border-radius: 28px;
   background: var(--panel);
@@ -550,19 +567,43 @@ h1 {
 }
 
 .modal__panel {
+  position: relative;
   padding: 18px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
 }
 
 .modal__header {
-  display: flex;
-  justify-content: space-between;
+  position: sticky !important;
+  top: 0;
+  z-index: 20;
+  display: flex !important;
   align-items: center;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--panel);
+  padding: 0 0 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
 }
 
 .modal__header h2 {
   margin: 0;
   font-size: 30px;
+}
+
+.modal__header .icon-button {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  place-items: center;
+  min-width: 52px;
+  min-height: 52px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: #1b2638;
+  color: var(--text);
+  font-size: 34px;
+  line-height: 1;
 }
 
 .tool-grid {
@@ -692,7 +733,7 @@ h1 {
   }
 
   .group-tabs {
-    top: 542px;
+    top: 384px;
   }
 
   .form-grid,
@@ -707,7 +748,7 @@ h1 {
   }
 
   .group-tabs {
-    top: 620px;
+    top: 456px;
   }
 
   .metric-grid {
@@ -729,3 +770,10 @@ h1 {
   .bottom-bar .btn {
     font-size: 20px;
   }
+}
+
+@supports not (height: 100dvh) {
+  .modal {
+    max-height: calc(100vh - 20px) !important;
+  }
+}

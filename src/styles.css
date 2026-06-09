@@ -783,6 +783,51 @@ dialog.modal::backdrop {
 
 @supports not (height: 100dvh) {
   dialog.modal {
-    max-height: calc(100vh - 40px);
-  }
+    max-height: calc(100vh - /* FORCE BOTTOM ACTION BAR TO STOP FLOATING OVER THE APP */
+.bottom-bar {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  z-index: 1 !important;
+
+  display: block !important;
+  border-top: 2px solid #202a3c !important;
+  background: #070d15 !important;
+
+  padding: 18px 22px calc(18px + env(safe-area-inset-bottom)) !important;
+  margin: 18px 0 0 0 !important;
+}
+
+.bottom-bar p {
+  margin: 0 0 12px !important;
+  color: #94a3b8 !important;
+  font-size: 22px !important;
+  text-align: center !important;
+}
+
+.bottom-bar__actions {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 14px !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+}
+
+.bottom-bar .btn {
+  min-height: 92px !important;
+  font-size: 26px !important;
+}
+
+/* Give the check card room so buttons are not hidden */
+.check-card {
+  margin-bottom: 18px !important;
+  overflow: visible !important;
+}
+
+/* Make sure page can actually scroll below the check card */
+body {
+  padding-bottom: 24px !important;
+  overflow-y: auto !important;
 }

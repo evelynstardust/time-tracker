@@ -1,5 +1,4 @@
-
-src/con.STORAGE_KEY = "showclock.polished.v1";
+const STORAGE_KEY = "showclock.polished.v1";
 
 const GROUPS = [
   "House/SM/LD",

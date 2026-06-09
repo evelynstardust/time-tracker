@@ -777,3 +777,107 @@ h1 {
     max-height: calc(100vh - 20px) !important;
   }
 }
+/* EMERGENCY MODAL FIX v4 */
+
+dialog.modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+
+  width: calc(100vw - 28px) !important;
+  max-width: 720px !important;
+  max-height: calc(100dvh - 40px) !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-y: auto !important;
+
+  border: 2px solid #344763 !important;
+  border-radius: 28px !important;
+  background: #101827 !important;
+  color: #f8fafc !important;
+}
+
+dialog.modal::backdrop {
+  background: rgba(0, 0, 0, 0.62) !important;
+}
+
+.modal__panel {
+  display: block !important;
+  position: relative !important;
+  padding: 18px !important;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom)) !important;
+  background: #101827 !important;
+  color: #f8fafc !important;
+}
+
+.modal__header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+
+  background: #101827 !important;
+  color: #f8fafc !important;
+  padding: 0 0 14px !important;
+  margin-bottom: 14px !important;
+  border-bottom: 1px solid #2a3952 !important;
+}
+
+.modal__header h2 {
+  color: #f8fafc !important;
+}
+
+.modal__header .icon-button {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+
+  place-items: center !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+
+  border: 2px solid #2a3952 !important;
+  border-radius: 999px !important;
+  background: #1b2638 !important;
+  color: #f8fafc !important;
+
+  font-size: 34px !important;
+  line-height: 1 !important;
+}
+
+/* Keep the bell hidden, but not the modal close buttons */
+.check-card .icon-button {
+  display: none !important;
+}
+
+/* Make sure modal content stays readable */
+.tool-tile,
+.form-card {
+  background: #0c131f !important;
+  color: #f8fafc !important;
+}
+
+.tool-tile strong,
+.form-card h3,
+label {
+  color: #f8fafc !important;
+}
+
+.tool-tile span,
+.fineprint {
+  color: #94a3b8 !important;
+}
+
+@supports not (height: 100dvh) {
+  dialog.modal {
+    max-height: calc(100vh - 40px) !important;
+  }
+}

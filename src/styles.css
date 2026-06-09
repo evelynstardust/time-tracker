@@ -1,4 +1,4 @@
-:root {
+
   color-scheme: dark;
   --bg: #070d15;
   --panel: #101827;
@@ -729,4 +729,3 @@ h1 {
   .bottom-bar .btn {
     font-size: 20px;
   }
-}

@@ -36,7 +36,7 @@ body {
 }
 
 body {
-  padding-bottom: 112px;
+  padding-bottom: 122px;
 }
 
 button,
@@ -49,6 +49,7 @@ select {
 
 button {
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 input,
@@ -74,7 +75,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--blue-bright);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, .18);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
 }
 
 textarea {
@@ -124,7 +125,7 @@ h1 {
   margin: 0 0 4px;
   font-size: 31px;
   line-height: 1;
-  letter-spacing: -.04em;
+  letter-spacing: -0.04em;
   font-weight: 850;
 }
 
@@ -133,7 +134,7 @@ h1 {
   color: var(--muted);
   font-size: 18px;
   line-height: 1.25;
-  letter-spacing: .02em;
+  letter-spacing: 0.02em;
 }
 
 .time-pill {
@@ -147,7 +148,7 @@ h1 {
   font-size: 27px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: -.04em;
+  letter-spacing: -0.04em;
 }
 
 .metric-grid {
@@ -182,7 +183,7 @@ h1 {
   font-size: 34px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: -.05em;
+  letter-spacing: -0.05em;
 }
 
 .metric--flag strong {
@@ -242,7 +243,7 @@ h1 {
   font-size: 28px;
   line-height: 1.1;
   font-weight: 900;
-  letter-spacing: -.03em;
+  letter-spacing: -0.03em;
 }
 
 .check-card span {
@@ -259,23 +260,6 @@ h1 {
   max-width: 250px;
   font-size: 24px;
   font-weight: 500;
-}
-
-.icon-button {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  border: 2px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel2);
-  color: var(--text);
-  font-size: 28px;
-  line-height: 1;
-}
-
-.check-card .icon-button {
-  display: none;
 }
 
 .quick-actions {
@@ -323,6 +307,24 @@ h1 {
 
 .btn--full {
   width: 100%;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 52px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: #1b2638;
+  color: var(--text);
+  font-size: 34px;
+  line-height: 1;
+}
+
+/* Hide only the notification/bell button in the check card. */
+.check-card .icon-button {
+  display: none;
 }
 
 .group-tabs {
@@ -392,7 +394,7 @@ h1 {
 
 .crew-card.is-selected {
   border-color: var(--blue-bright);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, .2);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 .crew-card.is-warn {
@@ -462,22 +464,22 @@ h1 {
 }
 
 .badge--good {
-  background: rgba(22, 163, 74, .22);
+  background: rgba(22, 163, 74, 0.22);
   color: #bbf7d0;
 }
 
 .badge--warn {
-  background: rgba(249, 115, 22, .24);
+  background: rgba(249, 115, 22, 0.24);
   color: #fed7aa;
 }
 
 .badge--bad {
-  background: rgba(239, 68, 68, .25);
+  background: rgba(239, 68, 68, 0.25);
   color: #fecaca;
 }
 
 .badge--allday {
-  background: rgba(14, 165, 233, .24);
+  background: rgba(14, 165, 233, 0.24);
   color: #bae6fd;
 }
 
@@ -547,40 +549,53 @@ h1 {
   font-size: 26px;
 }
 
-.modal {
+/* MODAL / TOOLS FIX */
+dialog.modal {
   position: fixed;
-  inset: 10px;
-  width: auto !important;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: calc(100vw - 28px);
   max-width: 720px;
-  margin: auto;
-  max-height: calc(100dvh - 20px) !important;
-  overflow: auto !important;
+  max-height: calc(100dvh - 40px);
+
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+
   border: 2px solid var(--line-strong);
   border-radius: 28px;
   background: var(--panel);
   color: var(--text);
-  padding: 0;
 }
 
-.modal::backdrop {
-  background: rgba(0, 0, 0, .72);
+dialog.modal::backdrop {
+  background: rgba(0, 0, 0, 0.62);
 }
 
 .modal__panel {
+  display: block;
   position: relative;
   padding: 18px;
   padding-bottom: calc(32px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  color: var(--text);
 }
 
 .modal__header {
-  position: sticky !important;
+  position: sticky;
   top: 0;
-  z-index: 20;
-  display: flex !important;
+  z-index: 50;
+
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+
   background: var(--panel);
+  color: var(--text);
   padding: 0 0 14px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--line);
@@ -588,21 +603,25 @@ h1 {
 
 .modal__header h2 {
   margin: 0;
+  color: var(--text);
   font-size: 30px;
 }
 
 .modal__header .icon-button {
-  display: grid !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+  display: grid;
+  visibility: visible;
+  opacity: 1;
+
   place-items: center;
-  min-width: 52px;
-  min-height: 52px;
+  min-width: 56px;
+  min-height: 56px;
+
   border: 2px solid var(--line);
   border-radius: 999px;
   background: #1b2638;
   color: var(--text);
-  font-size: 34px;
+
+  font-size: 38px;
   line-height: 1;
 }
 
@@ -624,6 +643,7 @@ h1 {
 
 .tool-tile strong {
   display: block;
+  color: var(--text);
   font-size: 16px;
 }
 
@@ -640,11 +660,13 @@ h1 {
   border: 2px solid var(--line);
   border-radius: 22px;
   background: #0c131f;
+  color: var(--text);
   padding: 16px;
 }
 
 .form-card h3 {
   margin: 0 0 12px;
+  color: var(--text);
   font-size: 20px;
 }
 
@@ -773,111 +795,7 @@ h1 {
 }
 
 @supports not (height: 100dvh) {
-  .modal {
-    max-height: calc(100vh - 20px) !important;
-  }
-}
-/* EMERGENCY MODAL FIX v4 */
-
-dialog.modal {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: translate(-50%, -50%) !important;
-
-  width: calc(100vw - 28px) !important;
-  max-width: 720px !important;
-  max-height: calc(100dvh - 40px) !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow-y: auto !important;
-
-  border: 2px solid #344763 !important;
-  border-radius: 28px !important;
-  background: #101827 !important;
-  color: #f8fafc !important;
-}
-
-dialog.modal::backdrop {
-  background: rgba(0, 0, 0, 0.62) !important;
-}
-
-.modal__panel {
-  display: block !important;
-  position: relative !important;
-  padding: 18px !important;
-  padding-bottom: calc(32px + env(safe-area-inset-bottom)) !important;
-  background: #101827 !important;
-  color: #f8fafc !important;
-}
-
-.modal__header {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-
-  background: #101827 !important;
-  color: #f8fafc !important;
-  padding: 0 0 14px !important;
-  margin-bottom: 14px !important;
-  border-bottom: 1px solid #2a3952 !important;
-}
-
-.modal__header h2 {
-  color: #f8fafc !important;
-}
-
-.modal__header .icon-button {
-  display: grid !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-
-  place-items: center !important;
-  min-width: 52px !important;
-  min-height: 52px !important;
-
-  border: 2px solid #2a3952 !important;
-  border-radius: 999px !important;
-  background: #1b2638 !important;
-  color: #f8fafc !important;
-
-  font-size: 34px !important;
-  line-height: 1 !important;
-}
-
-/* Keep the bell hidden, but not the modal close buttons */
-.check-card .icon-button {
-  display: none !important;
-}
-
-/* Make sure modal content stays readable */
-.tool-tile,
-.form-card {
-  background: #0c131f !important;
-  color: #f8fafc !important;
-}
-
-.tool-tile strong,
-.form-card h3,
-label {
-  color: #f8fafc !important;
-}
-
-.tool-tile span,
-.fineprint {
-  color: #94a3b8 !important;
-}
-
-@supports not (height: 100dvh) {
   dialog.modal {
-    max-height: calc(100vh - 40px) !important;
+    max-height: calc(100vh - 40px);
   }
 }

@@ -113,6 +113,13 @@ function bindEvents() {
   $("#addCrew").addEventListener("click", addCrew);
   $("#addBulkNote").addEventListener("click", addBulkNote);
   $("#saveShow").addEventListener("click", saveShow);
+  $("#importUnionPdf").addEventListener("click", () => $("#unionPdfInput").click());
+
+$("#unionPdfInput").addEventListener("change", event => {
+  const file = event.target.files?.[0];
+  if (file) importUnionPdf(file);
+  event.target.value = "";
+});
 
   els.searchInput.addEventListener("input", event => {
     searchTerm = event.target.value;

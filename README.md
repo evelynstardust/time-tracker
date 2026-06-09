@@ -1,16 +1,3 @@
-index.html
-manifest.json
-sw.js
-README.md
-assets/
-  icon.svg
-src/
-  app.js
-  styles.css
-
-
-
-
 
 # ShowClock v1
 

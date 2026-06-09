@@ -870,3 +870,269 @@ function escapeHtml(value) {
     "'": "&#39;"
   }[char]));
 }
+async function importUnionPdf(file) {
+  try {
+    const text = await extractPdfText(file);
+    const result = parseUnionTimesheet(text);
+
+    if (!result.rows.length) {
+      alert("I couldn't find crew rows in that PDF. Try exporting/copying the sheet as CSV if Call Steward allows it.");
+      return;
+    }
+
+    const ok = confirm(
+      `Found ${result.rows.length} crew rows.\n\n` +
+      `Show: ${result.show.name || "unknown"}\n` +
+      `Date: ${result.show.date || "unknown"}\n\n` +
+      `Import these into ShowClock?`
+    );
+
+    if (!ok) return;
+
+    if (result.show.name) state.show.name = result.show.name;
+    if (result.show.venue) state.show.venue = result.show.venue;
+    if (result.show.date) state.show.date = result.show.date;
+    if (result.show.employer) state.show.employer = result.show.employer;
+
+    result.rows.forEach(imported => {
+      state.rows.push({
+        id: nextId(),
+        name: imported.name,
+        position: imported.position,
+        group: imported.group || inferGroup(imported.position, imported.scheduledIn),
+        scheduledIn: imported.scheduledIn,
+        actualIn: imported.scheduledIn,
+        actualOut: "",
+        breakMin: 0,
+        lunchTaken: false,
+        allDayHand: false,
+        lastCheckIn: "",
+        notes: "Imported from union PDF",
+        selected: false,
+        reminded: {}
+      });
+    });
+
+    saveAndRender();
+    alert(`Imported ${result.rows.length} crew rows.`);
+  } catch (error) {
+    console.error(error);
+    alert("PDF import failed. The PDF may be image-only or formatted differently.");
+  }
+}
+
+async function extractPdfText(file) {
+  const pdfjsLib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs");
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+  let fullText = "";
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+
+    const items = content.items
+      .map(item => ({
+        text: item.str,
+        x: item.transform[4],
+        y: Math.round(item.transform[5])
+      }))
+      .filter(item => item.text && item.text.trim());
+
+    const linesByY = new Map();
+
+    items.forEach(item => {
+      const key = item.y;
+      if (!linesByY.has(key)) linesByY.set(key, []);
+      linesByY.get(key).push(item);
+    });
+
+    const lines = [...linesByY.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .map(([, lineItems]) =>
+        lineItems
+          .sort((a, b) => a.x - b.x)
+          .map(item => item.text)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim()
+      );
+
+    fullText += "\n" + lines.join("\n");
+  }
+
+  return fullText;
+}
+
+function parseUnionTimesheet(text) {
+  const show = {
+    name: "",
+    venue: "",
+    date: "",
+    employer: ""
+  };
+
+  const jobMatch = text.match(/Job\s*:?\s*(.+)/i) || text.match(/Job \/ Events:\s*(.+)/i);
+  if (jobMatch) show.name = cleanPdfText(jobMatch[1]);
+
+  const venueMatch = text.match(/Location\s*:?\s*(.+)/i);
+  if (venueMatch) show.venue = cleanPdfText(venueMatch[1]);
+
+  const employerMatch = text.match(/Employer\s*:?\s*(.+)/i);
+  if (employerMatch) show.employer = cleanPdfText(employerMatch[1]);
+
+  const dateMatch =
+    text.match(/Dates\s*:?\s*(.+?)\s+to/i) ||
+    text.match(/Day 1\s*-\s*(.+)/i);
+
+  if (dateMatch) show.date = unionDateToInputDate(dateMatch[1]);
+
+  const lines = text
+    .split(/\n+/)
+    .map(line => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const positionNames = [
+    "STAGE MANAGER",
+    "Stage Manager",
+    "Climber/rigger",
+    "UP RIGGER",
+    "DOWN RIG",
+    "FORK OP",
+    "Kesey LD",
+    "LOADER",
+    "Stagehand Grip",
+    "Stagehand"
+  ];
+
+  const rowChunks = [];
+  let current = "";
+
+  lines.forEach(line => {
+    if (/^\d+\s+/.test(line)) {
+      if (current) rowChunks.push(current);
+      current = line;
+    } else if (current && !/^(Job|Dates|Location|Employer|Payroll|Emp Notes|Local Notes|Day)/i.test(line)) {
+      current += " " + line;
+    }
+  });
+
+  if (current) rowChunks.push(current);
+
+  const rows = [];
+
+  rowChunks.forEach(chunk => {
+    const rowNumberMatch = chunk.match(/^(\d+)\s+/);
+    if (!rowNumberMatch) return;
+
+    let body = chunk.replace(/^\d+\s+/, "").trim();
+
+    const timeMatch = body.match(/(\d{1,2}:\d{2})\s*(am|pm)/i);
+    if (!timeMatch) return;
+
+    const scheduledIn = `${timeMatch[1]} ${timeMatch[2].toLowerCase()}`;
+
+    let foundPosition = "";
+    let foundIndex = -1;
+
+    positionNames.forEach(position => {
+      const index = body.toLowerCase().indexOf(position.toLowerCase());
+      if (index !== -1 && (foundIndex === -1 || index < foundIndex)) {
+        foundPosition = position;
+        foundIndex = index;
+      }
+    });
+
+    if (!foundPosition || foundIndex < 0) return;
+
+    let name = body.slice(0, foundIndex).trim();
+    let position = foundPosition;
+
+    position = position.replace(/\(\d+\)/g, "").trim();
+    name = name
+      .replace(/_{2,}/g, "")
+      .replace(/\(\d+\)/g, "")
+      .replace(/\b(am|pm)\b/gi, "")
+      .replace(/\d{1,2}:\d{2}/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    name = fixUnionName(name);
+
+    if (!name || name.length < 2) return;
+
+    rows.push({
+      name,
+      position,
+      scheduledIn,
+      group: inferGroup(position, scheduledIn)
+    });
+  });
+
+  return {
+    show,
+    rows: dedupeImportedRows(rows)
+  };
+}
+
+function cleanPdfText(value) {
+  return String(value || "")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/Page \d+ of \d+/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function fixUnionName(name) {
+  let cleaned = cleanPdfText(name);
+
+  cleaned = cleaned
+    .replace(/\bSignature\b/gi, "")
+    .replace(/\bLast 4\b/gi, "")
+    .replace(/\bTime In\b/gi, "")
+    .replace(/\bTime Out\b/gi, "")
+    .replace(/\bHours\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned;
+}
+
+function unionDateToInputDate(value) {
+  const text = String(value || "").trim();
+
+  const date = new Date(text.replace(/(\d+)(st|nd|rd|th)/i, "$1"));
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function dedupeImportedRows(rows) {
+  const seen = new Set();
+  const clean = [];
+
+  rows.forEach(row => {
+    const key = [
+      row.name.toLowerCase(),
+      row.position.toLowerCase(),
+      row.scheduledIn.toLowerCase()
+    ].join("|");
+
+    if (seen.has(key)) return;
+
+    seen.add(key);
+    clean.push(row);
+  });
+
+  return clean;
+}

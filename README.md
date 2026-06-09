@@ -1,3 +1,17 @@
+index.html
+manifest.json
+sw.js
+README.md
+assets/
+  icon.svg
+src/
+  app.js
+  styles.css
+
+
+
+
+
 # ShowClock v1
 
 A phone-first show-day crew time tracker.

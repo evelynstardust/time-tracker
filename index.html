@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101827" />
+  <meta name="description" content="ShowClock: a phone-first show-day crew timesheet and break tracker." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <link rel="stylesheet" href="src/styles.css" />
+  <title>ShowClock</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero__top">
+        <div>
+          <p class="eyebrow">Live event crew tracker</p>
+          <h1>ShowClock</h1>
+          <p class="show-line" id="showLine">Blank Show</p>
+        </div>
+        <div class="time-pill" id="clock">--:--</div>
+      </div>
+
+      <section class="metric-grid" aria-label="Show metrics">
+        <article class="metric">
+          <span>Visible</span>
+          <strong id="visibleCount">0</strong>
+        </article>
+        <article class="metric">
+          <span>Selected</span>
+          <strong id="selectedCount">0</strong>
+        </article>
+        <article class="metric">
+          <span>Crew hours</span>
+          <strong id="crewHours">0.0</strong>
+        </article>
+        <article class="metric metric--flag">
+          <span>Flags</span>
+          <strong id="flagCount">0</strong>
+        </article>
+      </section>
+
+      <section class="control-row" aria-label="Search and sorting">
+        <label class="search-field">
+          <span class="sr-only">Search crew</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 18.1a7.3 7.3 0 1 1 5.2-2.2l4 4-1.7 1.7-4-4a7.2 7.2 0 0 1-3.5.9Zm0-2.4a4.9 4.9 0 1 0 0-9.8 4.9 4.9 0 0 0 0 9.8Z"/></svg>
+          <input id="searchInput" type="search" placeholder="Search name, role, call…" autocomplete="off" />
+        </label>
+        <label class="select-field">
+          <span class="sr-only">Sort crew</span>
+          <select id="sortSelect">
+            <option value="call">Call time</option>
+            <option value="name">Name</option>
+            <option value="flags">Flags first</option>
+            <option value="open">Open first</option>
+            <option value="allday">All-day first</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="check-card" aria-label="Check-in card">
+        <div class="check-card__main">
+          <div>
+            <p class="check-card__label">Next check</p>
+            <strong id="nextDue">Next due: clear</strong>
+            <span>15 after 2 hrs, before 3 hrs • Lunch by 5 hrs</span>
+          </div>
+          <button class="icon-button" id="enableNotifications" title="Enable reminders" aria-label="Enable reminders">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2.8 2.8 0 0 0 2.6-1.8H9.4A2.8 2.8 0 0 0 12 22Zm7-6h-1V9.8a6 6 0 0 0-4.7-5.9V2h-2.6v1.9A6 6 0 0 0 6 9.8V16H5v2.3h14V16Z"/></svg>
+          </button>
+        </div>
+        <div class="quick-actions">
+          <button class="btn btn--warn" id="quickBreak">+15</button>
+          <button class="btn btn--good" id="quickLunch">Lunch</button>
+          <button class="btn" id="quickCheck">Check</button>
+          <button class="btn btn--blue" id="quickAllDay">All-day</button>
+        </div>
+      </section>
+    </header>
+
+    <nav class="group-tabs" id="groupTabs" aria-label="Crew groups"></nav>
+
+    <main class="crew-grid" id="crewGrid" aria-live="polite"></main>
+  </div>
+
+  <section class="bottom-bar" aria-label="Bulk actions">
+    <p id="bulkStatus">No crew selected — actions apply to visible rows</p>
+    <div class="bottom-bar__actions">
+      <button class="btn btn--blue" id="selectVisible">Select</button>
+      <button class="btn btn--warn" id="bulkBreak">+15</button>
+      <button class="btn btn--good" id="bulkOut">Out</button>
+      <button class="btn" id="openTools">Tools</button>
+    </div>
+  </section>
+
+  <dialog class="modal" id="toolsModal">
+    <form method="dialog" class="modal__panel">
+      <header class="modal__header">
+        <div>
+          <p class="eyebrow">ShowClock</p>
+          <h2>Tools</h2>
+        </div>
+        <button class="icon-button" type="submit" aria-label="Close tools">×</button>
+      </header>
+
+      <div class="tool-grid">
+        <button type="button" class="tool-tile" id="editShow">
+          <strong>Edit show</strong><span>Show info and notes</span>
+        </button>
+        <button type="button" class="tool-tile" id="newShow">
+          <strong>New show</strong><span>Start fresh</span>
+        </button>
+        <button type="button" class="tool-tile" id="selectAllDay">
+          <strong>Select all-day</strong><span>Focus long day hands</span>
+        </button>
+        <button type="button" class="tool-tile" id="clearSelection">
+          <strong>Clear selected</strong><span>Unselect all crew</span>
+        </button>
+        <button type="button" class="tool-tile" id="exportCsv">
+          <strong>Export CSV</strong><span>Payroll/report file</span>
+        </button>
+        <button type="button" class="tool-tile" id="copySummary">
+          <strong>Copy summary</strong><span>End-of-night text</span>
+        </button>
+        <button type="button" class="tool-tile" id="importCsv">
+          <strong>Import CSV</strong><span>Name, position, time, group</span>
+        </button>
+        <button type="button" class="tool-tile" id="loadDemo">
+          <strong>Load demo</strong><span>Fake sample crew</span>
+        </button>
+      </div>
+
+      <section class="form-card">
+        <h3>Add crew</h3>
+        <div class="form-grid">
+          <label>Name <input id="newName" placeholder="Jane Smith" /></label>
+          <label>Position <input id="newPosition" placeholder="Stagehand Grip" /></label>
+          <label>Call time <input id="newCall" placeholder="08:45 am" /></label>
+          <label>Group <select id="newGroup"></select></label>
+        </div>
+        <button class="btn btn--good btn--full" type="button" id="addCrew">Add crew row</button>
+      </section>
+
+      <section class="form-card">
+        <h3>Bulk note</h3>
+        <textarea id="bulkNote" placeholder="Add note to selected crew, or visible crew if none selected…"></textarea>
+        <button class="btn btn--full" type="button" id="addBulkNote">Add note</button>
+      </section>
+
+      <button class="btn btn--danger btn--full" type="button" id="clearData">Clear all local data</button>
+      <p class="fineprint">Data is stored only in this browser for v1. This is a show-day tracking aid, not payroll or legal advice.</p>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="showModal">
+    <form method="dialog" class="modal__panel">
+      <header class="modal__header">
+        <div>
+          <p class="eyebrow">Setup</p>
+          <h2>Show details</h2>
+        </div>
+        <button class="icon-button" type="submit" aria-label="Close show setup">×</button>
+      </header>
+
+      <section class="form-card">
+        <label>Show name <input id="showName" placeholder="Show name" /></label>
+        <label>Venue <input id="showVenue" placeholder="Venue" /></label>
+        <label>Date <input id="showDate" type="date" /></label>
+        <label>Employer / Client <input id="showEmployer" placeholder="Employer or client" /></label>
+        <label>Notes <textarea id="showNotes" placeholder="Show notes…"></textarea></label>
+        <button class="btn btn--good btn--full" type="button" id="saveShow">Save show</button>
+      </section>
+    </form>
+  </dialog>
+
+  <template id="crewCardTemplate">
+    <article class="crew-card">
+      <div class="crew-card__head">
+        <input class="select-row" type="checkbox" aria-label="Select row" />
+        <div class="crew-card__identity">
+          <h2></h2>
+          <p></p>
+        </div>
+        <div class="hour-stack">
+          <strong></strong>
+          <span>hours</span>
+        </div>
+      </div>
+
+      <div class="badge-row"></div>
+
+      <div class="time-grid">
+        <label>In <input class="actual-in" inputmode="text" /></label>
+        <label>Out <input class="actual-out" inputmode="text" /></label>
+        <label>Break <input class="break-min" type="number" min="0" step="1" /></label>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn btn--warn add-break" type="button">+15</button>
+        <button class="btn btn--good mark-lunch" type="button">Lunch</button>
+        <button class="btn clock-out" type="button">Out</button>
+      </div>
+
+      <details class="more-actions">
+        <summary>More</summary>
+        <div>
+          <button class="btn toggle-all-day" type="button">All-day</button>
+          <button class="btn duplicate-row" type="button">Duplicate</button>
+          <button class="btn btn--danger delete-row" type="button">Delete</button>
+        </div>
+      </details>
+
+      <label class="notes-field">Notes <textarea class="row-notes" placeholder="Notes…"></textarea></label>
+    </article>
+  </template>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
